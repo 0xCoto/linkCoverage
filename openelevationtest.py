@@ -1,8 +1,3 @@
-"""
-ELEVATION PROFILE APP GENERATOR
-ideagora geomatics-2018
-http://geodose.com
-""" 
 import urllib.request
 import json
 import math

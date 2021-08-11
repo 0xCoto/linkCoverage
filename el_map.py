@@ -96,14 +96,14 @@ def elevation_map(lat, long, radius, resolution):
                 ])
         plt.show()
 
-def elevation_profile():
+def elevation_profile(lat_start, long_start, lat_end, long_end, pts=200):
         #START-END POINT
-        P1=[37.92004381769315, 20.6882094302896]
-        P2=[37.92004381769315, 20.6982094302896]
+        P1=[lat_start, long_start]
+        P2=[lat_end, long_end]
         #NUMBER OF POINTS
-        s=80
-        interval_lat=(P2[0]-P1[0])/s #interval for latitude
-        interval_lon=(P2[1]-P1[1])/s #interval for longitude
+        pts -= 1
+        interval_lat=(P2[0]-P1[0])/pts #interval for latitude
+        interval_lon=(P2[1]-P1[1])/pts #interval for longitude
         #SET A NEW VARIABLE FOR START POINT
         lat0=P1[0]
         lon0=P1[1]
@@ -111,7 +111,7 @@ def elevation_profile():
         lat_list=[lat0]
         lon_list=[lon0]
         #GENERATING POINTS
-        for i in range(s):
+        for i in range(pts):
                 lat_step=lat0+interval_lat
                 lon_step=lon0+interval_lon
                 lon0=lon_step
@@ -141,32 +141,47 @@ def elevation_profile():
         #d_ar=[{}]*len(lat_list)
         #for i in range(len(lat_list)):
         #        d_ar[i]={"latitude":lat_list[i],"longitude":lon_list[i]}
-        location = ""
+        locations = ""
         for i in range(len(lat_list)):
-                location = location + str(lat_list[i])+","+str(lon_list[i])+"|"
+                locations = locations + str(lat_list[i])+","+str(lon_list[i])+"|"
         # Delete trailing "|" separator
-        location = location[:-1]
-        data = "locations="+location
+        locations = locations[:-1]
+        data = "locations="+locations
         #location={"locations":d_ar}
         #print(location)
-        json_data=json.dumps(location,skipkeys=int).encode('utf8')
+        json_data=json.dumps(locations,skipkeys=int).encode('utf8')
         #print(json_data)
-        #SEND REQUEST 
+        dataset = 'EU-DEM (25m)'
+        print('Fetching elevation data from '+colors.bold+dataset+colors.reset+'...')
         url="https://api.opentopodata.org/v1/eudem25m?"
         ###response = urllib.request.Request(url,json_data,headers={'Content-Type': 'application/json'})
-        print(url+data)
         response = requests.get(url, data, headers={'content-type': 'application/json'})
         # Parse response to json
         response = response.json()
-        print(response)
         elev_list=[]
-        for j in range (0, len(response['results'])):
-                elevation = response['results'][j]['elevation']
-                if elevation == 'null' or elevation is None:
-                        elevation = np.nan
-                else:
-                        elevation = float(elevation)
-                elev_list.append(elevation)
+        locations100 = ""
+        i = 0
+        for location in locations.split("|"):
+                locations100 = locations100 + location + "|"
+                i += 1
+                if i % 100 == 0 or i == len(locations.split("|")):
+                        locations100 = locations100[:-1]
+                        #print(locations100) #print set
+                        data = "locations="+locations100
+                        response = requests.get(url, data, headers={'content-type': 'application/json'})
+                        # Parse response to json
+                        response = response.json()
+                        for j in range (0, len(response['results'])):
+                                elevation = response['results'][j]['elevation']
+                                if elevation == 'null' or elevation is None:
+                                        elevation = np.nan
+                                else:
+                                        elevation = float(elevation)
+                                elev_list.append(elevation)
+                        locations100 = ""
+                        update_progress(100*i/len(locations.split("|")))
+        print()
+
         #BASIC STAT INFORMATION
         mean_elev=round((sum(elev_list)/len(elev_list)),3)
         min_elev=min(elev_list)
@@ -189,10 +204,13 @@ def elevation_profile():
         plt.legend(fontsize='small')
         plt.show()
 
+elevation_map(lat = 40.831163123486064,
+              long = 9.069893611397163,
+              radius = 10,
+              resolution = 0.5)
 
-#elevation_map(lat = 40.831163123486064,
-#              long = 9.069893611397163,
-#              radius = 10,
-#              resolution = 0.5)
-
-elevation_profile()
+elevation_profile(lat_start=37.92004381769315,
+                  long_start=20.6882094302896,
+                  lat_end=37.92004381769315,
+                  long_end=20.6982094302896,
+                  pts=205)

@@ -80,7 +80,6 @@ def elevation_map(lat, long, radius, resolution):
                                         elevation = np.nan
                                 else:
                                         elevation = float(elevation)
-                                #print(elevation)
                                 heatmap = np.append(heatmap, elevation)
                         locations100 = ""
                         update_progress(100*i/len(locations.split("|")))
@@ -88,7 +87,7 @@ def elevation_map(lat, long, radius, resolution):
 
         heatmap = heatmap.reshape(-1, len(np.arange(Tx[0]-radius/2, Tx[0]+radius/2, resolution)))
         heatmap = np.flipud(heatmap)
-        plt.imshow(heatmap, interpolation='gaussian', extent=[
+        plt.imshow(heatmap, interpolation='none', extent=[
                 np.min(np.arange(Tx[1]-radius/2, Tx[1]+radius/2, resolution)),
                 np.max(np.arange(Tx[1]-radius/2, Tx[1]+radius/2, resolution)),
                 np.min(np.arange(Tx[0]-radius/2, Tx[0]+radius/2, resolution)),
@@ -206,11 +205,11 @@ def elevation_profile(lat_start, long_start, lat_end, long_end, pts=200):
 
 elevation_map(lat = 40.831163123486064,
               long = 9.069893611397163,
-              radius = 10,
-              resolution = 0.5)
+              radius = 7,
+              resolution = 0.2)
 
-elevation_profile(lat_start=37.92004381769315,
-                  long_start=20.6882094302896,
-                  lat_end=37.92004381769315,
-                  long_end=20.6982094302896,
-                  pts=205)
+#elevation_profile(lat_start=37.92004381769315,
+#                  long_start=20.6882094302896,
+#                  lat_end=37.92004381769315,
+#                  long_end=20.6982094302896,
+#                  pts=205)
